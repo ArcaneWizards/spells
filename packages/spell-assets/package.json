@@ -1,0 +1,32 @@
+{
+  "name": "@arcanewizards/spell-assets",
+  "description": "Static assets for use with the Spell file format",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArcaneWizards/spells.git",
+    "directory": "packages/spell-assets"
+  },
+  "exports": {
+    ".": "./package.json",
+    "./package.json": "./package.json",
+    "./assets/icon.ico": "./assets/icon.ico",
+    "./assets/icon.icns": "./assets/icon.icns",
+    "./assets/icon.svg": "./assets/icon.svg",
+    "./assets/icon-small.svg": "./assets/icon-small.svg"
+  },
+  "files": [
+    "assets/icon.ico",
+    "assets/icon.icns",
+    "assets/icon.svg",
+    "assets/icon-small.svg"
+  ],
+  "scripts": {
+    "build": "check-export-map"
+  },
+  "devDependencies": {
+    "check-export-map": "^1.3.1"
+  }
+}
