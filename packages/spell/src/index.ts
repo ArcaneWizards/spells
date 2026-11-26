@@ -368,7 +368,10 @@ export const parseSpell = (spell: unknown): ParsedSpell => {
       return {
         version: 'unknown',
         error: {
-          message: `Unknown spell version: ${version}, please make sure arcane is up to date.`,
+          message:
+            version === null
+              ? 'Unrecognized spell format, please make sure your software is up to date.'
+              : `Unknown spell version: ${version}, please make sure your software is up to date.`,
         },
       };
   }
