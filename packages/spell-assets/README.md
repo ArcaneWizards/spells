@@ -2,6 +2,10 @@
 
 [![](https://img.shields.io/npm/v/@arcanewizards/spell-assets)](https://www.npmjs.com/package/@arcanewizards/spell-assets)
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ArcaneWizards/spells/refs/heads/main/packages/spell-assets/assets/icon.svg" height="150" width="150" alt="Timecode Toolbox Icon"/>
+</p>
+
 This package contains image assets for the [`@arcanewizards/spell`](https://www.npmjs.com/package/@arcanewizards/spell)
 file format, including SVG, MacOS & Windows icons.
 

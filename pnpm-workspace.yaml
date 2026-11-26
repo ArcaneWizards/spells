@@ -3,6 +3,7 @@ packages:
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeStrict: true
 allowBuilds:
+  '@parcel/watcher': true
   esbuild: false
 overrides:
   '@electron/rebuild': 4.0.4
