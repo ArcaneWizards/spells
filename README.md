@@ -227,6 +227,83 @@ and have precise visuals for both the live and pre-mastered elements.
 
 ## Usage
 
+### Usage in TypeScript / JavaScript
+
+Install using your usual package manager:
+
+```
+pnpm install @arcanewizards/spell
+```
+
+Then import and use the package like so:
+
+```ts
+import { type ArcaneSpell, parseSpell } from '@arcanewizards/spell';
+
+import {
+  SPELL_MIME_TYPE,
+  SPELL_FILE_EXTENSION,
+  SPELL_FILE_EXTENSION_ALTERNATIVES,
+} from '@arcanewizards/spell';
+
+// Creating spells
+
+// - Use the ArcaneSpell type for type-checking
+// - Export as JSON
+// - Use SPELL_FILE_EXTENSION to name the file
+const mySpell: ArcaneSpell = {
+  version: 2,
+  matchers,
+  data: {
+    beatGrids: [
+      // Beat grid data here
+    ],
+    layers: [
+      // Layer data here
+    ],
+  },
+};
+
+const SPELL_FILE_1 = JSON.stringify(mySpell);
+const spellFilename = `spell.${SPELL_FILE_EXTENSION}`;
+
+// Importing Spells
+
+// - Allow any file extensions from SPELL_FILE_EXTENSION or SPELL_FILE_EXTENSION_ALTERNATIVES,
+//   or use SPELL_MIME_TYPE
+// - Parse JSON
+// - Use parseSpell()
+// - Check that version is not unknown
+
+const SPELL_FILE_2 = `{"version":2, ...}`;
+const spell = parseSpell(JSON.parse(SPELL_FILE_2));
+
+if (spell.version === 'unknown') {
+  throw new Error(`Invalid Spell: ${spell.error.message}`);
+}
+
+// Use the spell data as you see fit
+```
+
+You will find that most of the TypeScript types have detailed documentation,
+so intellisense & jump-to-definition will reveal more details about how to use
+the different elements of the spell file structure.
+
+### Usage in other languages
+
+This repo also publishes a JSON schema you can see here:
+[packages/spell/schema.json](./packages/spell/schema.json)
+
+Note that this is only provided for the most recent version of the spell files,
+and does not:
+
+- include the intellisense documentation that you get from using the TypeScript
+  library directly.
+- automatic conversion from older to newer spell formats.
+
+So you will need to manually implement handling of parsing for older versions of
+spells.
+
 ## Supported Applications
 
 - [Arcane Desktop](https://arcanewizards.com/arcane)
@@ -260,3 +337,4 @@ SOFTWARE.
     <img src="https://arcanewizards.com/static/made-white.svg" alt="Made by Human" height="70">
   </a>
 </p>
+```

@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 2
+    },
+    "matchers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "artist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "album": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lengthMillis": {
+            "type": "number"
+          },
+          "offsetMillis": {
+            "type": "number"
+          }
+        },
+        "required": ["lengthMillis", "offsetMillis"],
+        "additionalProperties": false
+      }
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "beatGrids": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "firstDownBeat": {
+                "type": "number"
+              },
+              "lastDownBeat": {
+                "type": "number"
+              },
+              "barCount": {
+                "type": "number"
+              },
+              "beatsPerBar": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "firstDownBeat",
+              "lastDownBeat",
+              "barCount",
+              "beatsPerBar"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": ["percussion", "melody", "bass", "vocals", "other"]
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "events": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "t": {
+                          "type": "number"
+                        },
+                        "s": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "prefixItems": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ],
+                            "items": false,
+                            "minItems": 2,
+                            "maxItems": 2
+                          }
+                        }
+                      },
+                      "required": ["t", "s"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "recommendedSegments": {
+                    "type": "number"
+                  }
+                },
+                "required": ["kind", "events", "uuid"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "const": "cue"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "t": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "color": {
+                          "type": "string",
+                          "enum": [
+                            "purple",
+                            "blue",
+                            "teal",
+                            "red",
+                            "green",
+                            "yellow",
+                            "orange",
+                            "brown",
+                            "gray"
+                          ]
+                        }
+                      },
+                      "required": ["t"],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": ["uuid", "kind", "events"],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": ["layers"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["version", "matchers", "data"],
+  "additionalProperties": false
+}

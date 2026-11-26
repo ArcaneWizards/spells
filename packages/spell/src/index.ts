@@ -36,12 +36,11 @@ export const ARCANE_SPELL_ENVELOPE_LAYER_KINDS = Object.freeze({
 export type ArcaneSpellEnvelopeLayerKind =
   keyof typeof ARCANE_SPELL_ENVELOPE_LAYER_KINDS;
 
-export const ARCANE_SPELL_ENVELOPE_LAYER_KIND = z
-  .string()
-  .refine<ArcaneSpellEnvelopeLayerKind>(
-    (value): value is ArcaneSpellEnvelopeLayerKind =>
-      value in ARCANE_SPELL_ENVELOPE_LAYER_KINDS,
-  );
+export const ARCANE_SPELL_ENVELOPE_LAYER_KIND = z.enum(
+  Object.keys(ARCANE_SPELL_ENVELOPE_LAYER_KINDS) as Array<
+    keyof typeof ARCANE_SPELL_ENVELOPE_LAYER_KINDS
+  >,
+);
 
 const ARCANE_SPELL_ENVELOPE = z.object({
   /**
@@ -59,6 +58,8 @@ const ARCANE_SPELL_ENVELOPE = z.object({
    */
   s: z.array(z.tuple([z.number(), z.number()])),
 });
+
+const ARCANE_SPELL_ENVELOPES = z.array(ARCANE_SPELL_ENVELOPE);
 
 export type ArcaneSpellEnvelope = z.infer<typeof ARCANE_SPELL_ENVELOPE>;
 
@@ -92,26 +93,31 @@ const ARCANE_SPELL_CUE = z.object({
 
 export type ArcaneSpellCue = z.infer<typeof ARCANE_SPELL_CUE>;
 
+const filterInvalidEnvelopes = (
+  envelopes: z.infer<typeof ARCANE_SPELL_ENVELOPES>,
+) =>
+  envelopes.filter(
+    (envelope) =>
+      envelope.s.length > 0 &&
+      Math.min(...envelope.s.map((s) => s[0])) === 0 &&
+      Math.max(...envelope.s.map((s) => s[0])) > 0,
+  );
+
+const ARCANE_SPELL_ENVELOPE_LAYER_EVENTS = z
+  .array(ARCANE_SPELL_ENVELOPE)
+  .transform(filterInvalidEnvelopes);
+
 const ARCANE_SPELL_LAYER_V1 = z.object({
   kind: ARCANE_SPELL_ENVELOPE_LAYER_KIND,
   /**
    * An optional name for this layer.
    */
   name: z.string().optional(),
-  events: z
-    .array(ARCANE_SPELL_ENVELOPE)
-    .transform((envelopes) =>
-      envelopes.filter(
-        (envelope) =>
-          envelope.s.length > 0 &&
-          Math.min(...envelope.s.map((s) => s[0])) === 0 &&
-          Math.max(...envelope.s.map((s) => s[0])) > 0,
-      ),
-    ),
+  events: ARCANE_SPELL_ENVELOPE_LAYER_EVENTS,
 });
 
 const ARCANE_SPELL_ENVELOPE_LAYER = ARCANE_SPELL_LAYER_V1.extend({
-  uuid: z.string().uuid(),
+  uuid: z.uuid(),
   /**
    * If set, this is the recommended number of segments to divide this layer
    * into.
@@ -161,7 +167,7 @@ const ARCANE_SPELL_LAYER = z.union([
  * Arcane Casting interface.
  */
 export const ARCANE_SPELL_LAYER_KINDS = [
-  ARCANE_SPELL_CUE_LAYER.shape.kind._def.value,
+  ...ARCANE_SPELL_CUE_LAYER.shape.kind._zod.def.values,
   ...(Object.keys(
     ARCANE_SPELL_ENVELOPE_LAYER_KINDS,
   ) as ArcaneSpellEnvelopeLayerKind[]),
@@ -284,7 +290,10 @@ const ARCANE_SPELL_V2_SCHEMA = ARCANE_SPELL_BASE_SCHEMA.extend({
   }),
 });
 
-type ArcaneSpellV2 = z.infer<typeof ARCANE_SPELL_V2_SCHEMA>;
+/**
+ * The schema for the latest version of an Arcane Spell file.
+ */
+export const ARCANE_SPELL_SCHEMA = ARCANE_SPELL_V2_SCHEMA;
 
 /**
  * The complete type of an Arcane Spell file,
@@ -293,7 +302,21 @@ type ArcaneSpellV2 = z.infer<typeof ARCANE_SPELL_V2_SCHEMA>;
  * If you are generating your own spells,
  * use this type for type-safety.
  */
-export type ArcaneSpell = ArcaneSpellV2;
+export type ArcaneSpell = z.infer<typeof ARCANE_SPELL_SCHEMA>;
+
+export const getJSONSchema = () =>
+  ARCANE_SPELL_SCHEMA.toJSONSchema({
+    unrepresentable: ({ zodSchema }) => {
+      if (
+        zodSchema._zod.def.type === 'transform' &&
+        zodSchema._zod.def.transform === filterInvalidEnvelopes
+      ) {
+        return ARCANE_SPELL_ENVELOPES.toJSONSchema();
+      }
+      // istanbul ignore next
+      return 'throw';
+    },
+  });
 
 export const transformV1ToLatest = (v1: ArcaneSpellV1): ArcaneSpell => {
   return {

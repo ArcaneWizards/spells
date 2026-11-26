@@ -27,22 +27,7 @@ describe('parseSpell', () => {
         version: 'unknown',
         error: {
           message: 'Failed to parse spell, invalid data provided',
-          details: new ZodError([
-            {
-              code: 'invalid_type',
-              expected: 'array',
-              received: 'undefined',
-              path: ['matchers'],
-              message: 'Required',
-            },
-            {
-              code: 'invalid_type',
-              expected: 'object',
-              received: 'undefined',
-              path: ['data'],
-              message: 'Required',
-            },
-          ]),
+          details: expect.any(ZodError),
         },
       });
     });
