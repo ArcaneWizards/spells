@@ -2,7 +2,17 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SPELL_MIME_TYPE = 'application/vnd.arcanewizards.spell+json';
-export const SPELL_FILE_EXTENSION = 'arcane';
+/**
+ * The primary file extension for Arcane Spell files
+ *
+ * Note it's also recommended to use {@link SPELL_FILE_EXTENSION_ALTERNATIVES}
+ * when providing a list of acceptable file extensions.
+ */
+export const SPELL_FILE_EXTENSION = 'spell';
+/**
+ * Alternative file extensions that have been used for Arcane Spell files.
+ */
+export const SPELL_FILE_EXTENSION_ALTERNATIVES = ['arcane'];
 
 /**
  * The base schema common across all spells,
@@ -20,6 +30,9 @@ export const ARCANE_SPELL_ENVELOPE_LAYER_KINDS = Object.freeze({
   other: null,
 });
 
+/**
+ * Available kinds of envelope layers.
+ */
 export type ArcaneSpellEnvelopeLayerKind =
   keyof typeof ARCANE_SPELL_ENVELOPE_LAYER_KINDS;
 
@@ -36,9 +49,9 @@ const ARCANE_SPELL_ENVELOPE = z.object({
    */
   t: z.number(),
   /**
-   * states for this event, an array of [timestamp, amplitude] pairs.
+   * The shape of this envelope, an array of [timestamp, amplitude] pairs.
    *
-   * - `timestamp` is the time in milliseconds from the start of the event.
+   * - `timestamp` is the time in milliseconds from the start of the envelope.
    * - `amplitude` is the value of the state at that time (between 0-1).
    *
    * When calculating the values between timestamps,
@@ -87,12 +100,12 @@ const ARCANE_SPELL_LAYER_V1 = z.object({
   name: z.string().optional(),
   events: z
     .array(ARCANE_SPELL_ENVELOPE)
-    .transform((events) =>
-      events.filter(
-        (event) =>
-          event.s.length > 0 &&
-          Math.min(...event.s.map((s) => s[0])) === 0 &&
-          Math.max(...event.s.map((s) => s[0])) > 0,
+    .transform((envelopes) =>
+      envelopes.filter(
+        (envelope) =>
+          envelope.s.length > 0 &&
+          Math.min(...envelope.s.map((s) => s[0])) === 0 &&
+          Math.max(...envelope.s.map((s) => s[0])) > 0,
       ),
     ),
 });
@@ -106,6 +119,14 @@ const ARCANE_SPELL_ENVELOPE_LAYER = ARCANE_SPELL_LAYER_V1.extend({
   recommendedSegments: z.number().optional(),
 });
 
+/**
+ * An envelope layer is a layer where each item has a start time, duration,
+ * and a "shape" that defines how the amplitude change over time.
+ *
+ * This is similar in concept to an envelope in a DAW,
+ * however rather than controlling audio parameters,
+ * it is used to describe how loud the final mastered audio element is.
+ */
 export type ArcaneSpellEnvelopeLayer = z.infer<
   typeof ARCANE_SPELL_ENVELOPE_LAYER
 >;
@@ -120,6 +141,13 @@ const ARCANE_SPELL_CUE_LAYER = z.object({
   events: z.array(ARCANE_SPELL_CUE),
 });
 
+/**
+ * A cue layer is your typical "marker" layer,
+ * that represent specific points in time within a track,
+ * for example the start of a verse or drop.
+ *
+ * Each cue can be given an optional label and color to help identify it.
+ */
 export type ArcaneSpellCueLayer = z.infer<typeof ARCANE_SPELL_CUE_LAYER>;
 
 const ARCANE_SPELL_LAYER = z.union([
@@ -129,7 +157,8 @@ const ARCANE_SPELL_LAYER = z.union([
 
 /**
  * All spell layer kinds,
- * ordered by default priority when displaying in output mapper.
+ * ordered by default priority when displaying in interfaces like the
+ * Arcane Casting interface.
  */
 export const ARCANE_SPELL_LAYER_KINDS = [
   ARCANE_SPELL_CUE_LAYER.shape.kind._def.value,
@@ -138,8 +167,20 @@ export const ARCANE_SPELL_LAYER_KINDS = [
   ) as ArcaneSpellEnvelopeLayerKind[]),
 ] as const;
 
+/**
+ * Any layer of a spell,
+ * typically either a {@link ArcaneSpellEnvelopeLayer} or a
+ * {@link ArcaneSpellCueLayer}.
+ *
+ * In typescript, checking the value of `kind` allows you to narrow down the
+ * specific layer type.
+ */
 export type ArcaneSpellLayer = z.infer<typeof ARCANE_SPELL_LAYER>;
 
+/**
+ * All possible layer kinds,
+ * regardless of the layer type.
+ */
 export type ArcaneSpellLayerKind = ArcaneSpellLayer['kind'];
 
 const ARCANE_SPELL_BEAT_GRID = z.object({
@@ -149,6 +190,13 @@ const ARCANE_SPELL_BEAT_GRID = z.object({
   beatsPerBar: z.number(),
 });
 
+/**
+ * A beat grid defines the timing structure of a track,
+ * allowing you to understand the rhythmic structure and timing of the track.
+ *
+ * For tracks with variable tempo,
+ * spells should have multiple beat grids to accurately model the tempo changes.
+ */
 export type ArcaneSpellBeatGrid = z.infer<typeof ARCANE_SPELL_BEAT_GRID>;
 
 const ARCANE_SPELL_V1_SCHEMA = ARCANE_SPELL_BASE_SCHEMA.extend({
@@ -196,6 +244,13 @@ const ARCANE_SPELL_V2_SCHEMA = ARCANE_SPELL_BASE_SCHEMA.extend({
   /**
    * Matchers are a set of rules that can be used to determine if a spell
    * matches a given song.
+   *
+   * In an ideal scenario,
+   * applications are provided exact title, artist and album metadata,
+   * and a precise track length,
+   * however this is not always possible,
+   * and applications should implement some form of heuristic / fuzzy matching,
+   * to determine if a particular spell matches a given track.
    */
   matchers: z.array(
     z.object({
@@ -203,7 +258,7 @@ const ARCANE_SPELL_V2_SCHEMA = ARCANE_SPELL_BASE_SCHEMA.extend({
       artist: z.array(z.string()).optional(),
       album: z.array(z.string()).optional(),
       /**
-       * The length of the song in milliseconds.
+       * The length of the track in milliseconds.
        */
       lengthMillis: z.number(),
       /**
@@ -220,6 +275,10 @@ const ARCANE_SPELL_V2_SCHEMA = ARCANE_SPELL_BASE_SCHEMA.extend({
    * The actual spell data
    */
   data: z.object({
+    /**
+     * Tracks with e.g. variable tempo may have multiple beat grids to
+     * accurately model the changes.
+     */
     beatGrids: z.array(ARCANE_SPELL_BEAT_GRID).optional(),
     layers: z.array(ARCANE_SPELL_LAYER),
   }),
@@ -300,7 +359,7 @@ export const parseSpell = (spell: unknown): ParsedSpell => {
   let parser: z.ZodType<ParsedSpell, any, any>;
   switch (version) {
     case 1:
-      parser = ARCANE_SPELL_V1_SCHEMA.transform(transformV1ToLatest);
+      parser = ARCANE_SPELL_V1_SCHEMA_TRANSFORMED;
       break;
     case 2:
       parser = ARCANE_SPELL_V2_SCHEMA;

@@ -3,6 +3,7 @@
   "description": "Open-source file-format for musical timing data for use in live events",
   "version": "2.0.1",
   "private": false,
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/ArcaneWizards/spells.git",

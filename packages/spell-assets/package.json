@@ -3,6 +3,7 @@
   "description": "Static assets for use with the Spell file format",
   "version": "0.0.2",
   "private": false,
+  "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
