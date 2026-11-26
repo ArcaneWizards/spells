@@ -337,4 +337,3 @@ SOFTWARE.
     <img src="https://arcanewizards.com/static/made-white.svg" alt="Made by Human" height="70">
   </a>
 </p>
-```
