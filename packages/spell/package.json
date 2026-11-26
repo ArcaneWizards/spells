@@ -1,7 +1,7 @@
 {
   "name": "@arcanewizards/spell",
   "description": "Open-source file-format for musical timing data for use in live events",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": false,
   "license": "MIT",
   "type": "module",

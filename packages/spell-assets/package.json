@@ -1,7 +1,7 @@
 {
   "name": "@arcanewizards/spell-assets",
   "description": "Static assets for use with the Spell file format",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "license": "MIT",
   "type": "module",
